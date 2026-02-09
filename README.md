@@ -76,3 +76,22 @@ This repository contains a production-oriented DevOps setup for a small platform
 cd app
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+### 2) Run with Docker (app only)
+
+```bash
+docker build -t fastapi-redis:local ./app
+docker run --rm -p 8000:8000 fastapi-redis:local
+```
+For full local functionality you must run Redis too (e.g., docker compose or a local redis container).
+
+### 3) Quick local Redis (example)
+
+```bash
+docker run --rm -d --name redis -p 6379:6379 redis:7
+export REDIS_HOST=127.0.0.1
+export REDIS_PORT=6379
+cd app
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
