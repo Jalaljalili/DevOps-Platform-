@@ -76,7 +76,7 @@ This repository contains a production-oriented DevOps setup for a small platform
 cd app
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000
-
+```
 
 ### 2) Run with Docker (app only)
 
