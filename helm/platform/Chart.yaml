@@ -1,0 +1,10 @@
+apiVersion: v2
+name: platform
+description: FastAPI + Redis platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: redis
+    version: 19.5.0
+    repository: https://charts.bitnami.com/bitnami
