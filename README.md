@@ -95,3 +95,62 @@ export REDIS_PORT=6379
 cd app
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
+
+## Kubernetes Deployment (Helm)
+### 1) Add Helm repos
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+```
+### 2)Deploy
+From repo root:
+
+```bash
+helm dependency update helm/platform
+helm upgrade --install platform helm/platform \
+  -n platform --create-namespace \
+  --set image.repository=ghcr.io/ORG/fastapi-redis \
+  --set image.tag=latest
+```
+
+### 3) Access service (port-forward)
+
+```bash
+kubectl -n platform port-forward svc/platform 8000:8000
+curl http://127.0.0.1:8000/healthz
+```
+
+## CI/CD (GitHub Actions)
+
+Workflow file: .github/workflows/ci-cd.yaml
+
+Pipeline stages:
+
+- test: basic import check after installing requirements
+
+- build_and_push: builds Docker image and pushes to GHCR
+
+- deploy: deploys via Helm to Kubernetes using kubeconfig secret
+
+### Required GitHub Secrets
+
+Set these in: Repository → Settings → Secrets and variables → Actions
+
+* IMAGE_REPO
+Example: ghcr.io/<org-or-user>/<image-name>
+
+* KUBECONFIG_B64
+Base64 encoded kubeconfig (cluster access with deploy permissions)
+
+* KUBE_NAMESPACE
+Example: platform
+
+* HELM_RELEASE
+Example: platform
+
+Create kubeconfig base64:
+
+```bash
+base64 -w 0 ~/.kube/config
+```
