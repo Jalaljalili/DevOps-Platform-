@@ -154,3 +154,71 @@ Create kubeconfig base64:
 ```bash
 base64 -w 0 ~/.kube/config
 ```
+
+## Logging (All Services)
+
+Tooling: Loki + Promtail
+
+Promtail collects stdout/stderr logs from all pods in the cluster/namespace and ships to Loki with Kubernetes labels (namespace/pod/container).
+
+Install:
+
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm upgrade --install loki grafana/loki-stack \
+  -n observability --create-namespace \
+  -f observability/loki-promtail/values.yaml
+```
+
+## Monitoring
+
+Tooling: kube-prometheus-stack (Prometheus Operator bundle)
+
+Install:
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f monitoring/kube-prometheus-stack/values.yaml
+```
+## Performance Testing (k6)
+
+Run load test:
+
+```bash
+k6 run -e BASE_URL=http://127.0.0.1:8000 perf/k6/loadtest.js
+```
+This test includes thresholds:
+
+* http_req_failed < 1%
+
+* p95 latency < 300ms
+
+## Notes on Optimization Choices
+
+### Dockerfile:
+
+* python:3.9-slim for smaller image
+
+* dependency caching by copying requirements.txt first
+
+* non-root user runtime
+
+* gunicorn + uvicorn worker for higher throughput
+
+### Kubernetes:
+
+* readiness probe depends on Redis connectivity
+
+* resources requests/limits for predictable scheduling
+
+* HPA enabled for CPU-based autoscaling
+
+### Logging:
+
+* Loki+Promtail: Kubernetes-native discovery, low overhead, no app changes required
+
+All decision justifications are documented in docs/DECISIONS.md.
